@@ -17,18 +17,24 @@ COPY rootfs /
 
 # Needs to be redefined inside the FROM statement to be set for RUN commands
 ARG BUILD_ARCH
-# Get go2rtc binary
-RUN \
-    case "${BUILD_ARCH}" in \
-        "aarch64") go2rtc_suffix='arm64' ;; \
-        "armhf") go2rtc_suffix='armv6' ;; \
-        "armv7") go2rtc_suffix='arm' ;; \
-        *) go2rtc_suffix=${BUILD_ARCH} ;; \
-    esac \
-    && curl -L https://github.com/AlexxIT/go2rtc/releases/download/v1.9.9/go2rtc_linux_${go2rtc_suffix} --output /bin/go2rtc \
-    && chmod +x /bin/go2rtc \
-    # Verify go2rtc can be executed
-    && go2rtc --version
+# Pick your go2rtc version here
+ARG GO2RTC_VERSION=1.9.9
+
+RUN set -eux; \
+    case "$(dpkg --print-architecture)" in \
+      amd64)  suffix=amd64  ;; \
+      arm64)  suffix=arm64  ;; \
+      armhf)  suffix=armv6  ;; \
+      armv7)  suffix=arm   ;; \
+      *) echo "Unsupported arch: $(dpkg --print-architecture)" >&2 && exit 1 ;; \
+    esac; \
+    curl -fSL \
+      "https://github.com/AlexxIT/go2rtc/releases/download/v${GO2RTC_VERSION}/go2rtc_linux_${suffix}" \
+      -o /usr/bin/go2rtc; \
+    test -s /usr/bin/go2rtc; \
+    chmod +x /usr/bin/go2rtc; \
+    go2rtc --version
+
 
 # Install uv
 RUN pip3 install uv==0.6.10

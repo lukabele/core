@@ -1,15 +1,21 @@
+from abc import ABC, abstractmethod
 from typing import List, Optional
 from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 
 
-class EmailNotifier:
+class NotificationChannel(ABC):
+    @abstractmethod
+    def send(self, message: str):
+        pass
+
+
+class EmailNotifier(NotificationChannel):
     """A dedicated Python class to send email notifications via Home Assistant's SMTP notify integration."""
 
     def __init__(self, hass: HomeAssistant, service_name: str = "email_alerts"):
-        """
-        Initialize the EmailNotifier.
+        """Initialize the EmailNotifier.
 
         :param hass: Home Assistant instance
         :param service_name: the notify service (after notify.) to call
@@ -20,8 +26,7 @@ class EmailNotifier:
     def send(
         self, subject: str, message: str, targets: Optional[List[str]] = None
     ) -> None:
-        """
-        Send an email notification via HA notify service.
+        """Send an email notification via HA notify service.
 
         :param subject: Email subject
         :param message: Email body
@@ -33,7 +38,7 @@ class EmailNotifier:
         self.hass.services.call("notify", self.service_name, data)
 
 
-class PushNotifier:
+class PushNotifier(NotificationChannel):
     """A dedicated Python class to send push notifications via Home Assistant mobile_app for SM-S928B."""
 
     def __init__(self, hass: HomeAssistant, service_name: str = "mobile_app_sm_s928b"):
@@ -58,6 +63,19 @@ class PushNotifier:
         if targets:
             data["target"] = targets
         self.hass.services.call("notify", self.service_name, data)
+
+
+class NotificationService:
+    def __init__(self, channels: Optional[List[NotificationChannel]] = None):
+        self.channels = channels if channels else []
+
+    def add_channel(self, channel: NotificationChannel):
+        self.channels.append(channel)
+
+    def notify(self, subject: str, body: str):
+        message = f"{subject}: {body}"
+        for channel in self.channels:
+            channel.send(message)
 
 
 # Usage example for SM-S928B:

@@ -14,7 +14,6 @@ from .notifications import EmailNotifier, PushNotifier
 _PLATFORMS: list[Platform] = [Platform.LIGHT]
 
 
-
 async def async_setup_entry(hass, entry) -> bool:  # noqa: D103
     # Read options (fall back to defaults if not set)
     # service_name = entry.options.get("email_service", "email_alerts")
