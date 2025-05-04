@@ -1,8 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import List, Optional
-from homeassistant.core import HomeAssistant
 
-from .const import DOMAIN
+from homeassistant.core import HomeAssistant
 
 
 class NotificationChannel(ABC):
@@ -24,7 +22,7 @@ class EmailNotifier(NotificationChannel):
         self.service_name = service_name
 
     def send(
-        self, subject: str, message: str, targets: Optional[List[str]] = None
+        self, subject: str, message: str, targets: list[str] | None = None
     ) -> None:
         """Send an email notification via HA notify service.
 
@@ -51,7 +49,7 @@ class PushNotifier(NotificationChannel):
         self.service_name = service_name
 
     def send(
-        self, title: str, message: str, targets: Optional[List[str]] = None
+        self, title: str, message: str, targets: list[str] | None = None
     ) -> None:
         """Send a push notification via HA mobile_app notify service for SM-S928B.
 
@@ -66,7 +64,7 @@ class PushNotifier(NotificationChannel):
 
 
 class NotificationService:
-    def __init__(self, channels: Optional[List[NotificationChannel]] = None):
+    def __init__(self, channels: list[NotificationChannel] | None = None):
         self.channels = channels if channels else []
 
     def add_channel(self, channel: NotificationChannel):
